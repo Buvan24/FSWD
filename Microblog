@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Microblog </title>
+<style>
+:root{
+  --bg:#0b0f15;
+  --panel:#0f1720;
+  --muted:#9aa6b2;
+  --accent1:#7c3aed;
+  --accent2:#06b6d4;
+  --accent3:#f59e0b;
+  --glass: rgba(255,255,255,0.03);
+  --card: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  --radius:14px;
+  --danger:#ef4444;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background:
+    radial-gradient(1000px 600px at 10% 10%, rgba(124,58,237,0.06), transparent 6%),
+    radial-gradient(700px 400px at 90% 90%, rgba(6,182,212,0.04), transparent 6%),
+    var(--bg);
+  color:#e6eef6;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:28px;
+}
+
+/* layout */
+.app{
+  max-width:1100px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:320px 1fr 300px;
+  gap:20px;
+  align-items:start;
+}
+
+/* left column */
+.left{
+  background:var(--panel);
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+  position:sticky;
+  top:28px;
+}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.logo{
+  width:44px;height:44px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent1),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;
+  color:white;box-shadow:0 6px 16px rgba(124,58,237,0.12);
+}
+.h1{font-weight:600;font-size:18px}
+.small{font-size:13px;color:var(--muted)}
+
+/* user card */
+.user-card{display:flex;gap:12px;align-items:center;margin:10px 0 16px}
+.avatar{
+  width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,#15202b,#0f1720);
+  display:flex;justify-content:center;align-items:center;font-weight:700;color:var(--accent2);
+  border:1px solid rgba(255,255,255,0.03)
+}
+.btn{
+  background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.04);
+  color:#e6eef6;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;
+  transition:all .16s;display:inline-flex;gap:8px;align-items:center;
+}
+.btn:hover{transform:translateY(-3px)}
+.cta{width:100%;display:flex;gap:8px;margin-top:12px}
+.input, textarea, select{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px;border-radius:10px;color:inherit;width:100%}
+.small-muted{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* center column */
+.center{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+  padding:18px;border-radius:var(--radius);box-shadow:0 6px 18px rgba(2,6,23,0.5)
+}
+.compose{
+  display:flex;gap:12px;margin-bottom:14px;
+  border-radius:12px;padding:12px;background:var(--glass);
+  align-items:flex-start;border:1px solid rgba(255,255,255,0.02)
+}
+.compose-left{width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,#0b1220,#0f1720);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent2)}
+.compose-box{flex:1}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.tools{display:flex;gap:8px;align-items:center}
+.tool{background:transparent;border:none;color:var(--muted);cursor:pointer;font-weight:600;padding:8px;border-radius:10px}
+.char-count{font-size:13px;color:var(--muted)}
+.post{margin-bottom:12px;padding:12px;border-radius:12px;background:var(--card);display:flex;gap:12px;border:1px solid rgba(255,255,255,0.02)}
+.post .meta{font-size:13px;color:var(--muted)}
+.post img{max-width:100%;border-radius:10px;margin-top:10px}
+.actions{display:flex;gap:10px;margin-top:10px;align-items:center}
+.action{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.02);cursor:pointer}
+.action.liked{background:linear-gradient(90deg, rgba(124,58,237,0.12), rgba(6,182,212,0.04))}
+
+/* right column */
+.right{background:var(--panel);border-radius:var(--radius);padding:18px;position:sticky;top:28px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
+.section{margin-bottom:14px}
+.user-mini{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;cursor:pointer}
+.user-mini:hover{background:rgba(255,255,255,0.02)}
+.follow-btn{margin-left:auto}
+
+/* small utilities */
+.row{display:flex;gap:8px;align-items:center}
+.pill{background:rgba(255,255,255,0.02);padding:6px 10px;border-radius:999px;font-size:13px}
+.search{display:flex;gap:8px;padding:8px;border-radius:10px;background:rgba(255,255,255,0.02)}
+.tag{color:var(--accent3);font-weight:700;margin-right:8px}
+
+/* responsive */
+@media (max-width:1000px){
+  .app{grid-template-columns:1fr; padding:18px}
+  .left,.right{position:relative;top:0}
+  .right{order:3}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="left">
+    <div class="brand">
+      <div class="logo">GM</div>
+      <div>
+        <div class="h1">GlowMicro</div>
+        <div class="small">Post, follow, connect — dark mode</div>
+      </div>
+    </div>
+
+    <div id="authArea">
+      <div class="user-card">
+        <div class="avatar" id="leftAvatar">A</div>
+        <div style="flex:1">
+          <div id="leftName" style="font-weight:700">Guest</div>
+          <div class="small-muted" id="leftHandle">Not signed in</div>
+          <div class="cta">
+            <button class="btn" id="btnCreate">Create account</button>
+            <button class="btn" id="btnLogin">Sign in</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="small-muted">Quick actions</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <button class="btn" id="btnNewPost">New Post</button>
+        <button class="btn" id="btnExplore">Explore</button>
+        <button class="btn" id="btnProfile">My Profile</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="small-muted">Suggested creators</div>
+      <div id="suggestList" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <div class="center">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-weight:700;font-size:18px">Home</div>
+      <div class="row">
+        <div class="pill" id="fcount">Followers 0</div>
+      </div>
+    </div>
+
+    <div class="compose" id="composeArea">
+      <div class="compose-left" id="composeAvatar">G</div>
+      <div class="compose-box">
+        <textarea id="postText" rows="3" placeholder="What's happening?" style="resize:none;border:none;background:transparent;color:inherit;outline:none;font-size:15px"></textarea>
+        <div class="controls">
+          <div class="tools">
+            <label class="tool">
+              <input type="file" id="imgUpload" accept="image/*" style="display:none">
+              <span id="imgBtn">📷 Image</span>
+            </label>
+            <button class="tool" id="pollBtn">📊 Poll</button>
+            <button class="tool" id="locationBtn">📍 Add location</button>
+            <button class="tool" id="tagBtn">🏷️ Tag</button>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="char-count" id="charCount">280</div>
+            <button class="btn" id="postBtn">Post</button>
+          </div>
+        </div>
+        <div class="small-muted" id="imgPreview" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div id="feed"></div>
+  </div>
+
+  <div class="right">
+    <div class="section">
+      <div style="font-weight:700;margin-bottom:8px">Search</div>
+      <div class="search">
+        <input id="searchInput" class="input" placeholder="Find users, tags, posts" />
+        <button class="btn" id="searchBtn">Go</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div style="font-weight:700;margin-bottom:8px">Trends</div>
+      <div id="trends"></div>
+    </div>
+
+    <div class="section">
+      <div style="font-weight:700;margin-bottom:8px">Following</div>
+      <div id="followingList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- modal area (simple) -->
+<div id="modalRoot"></div>
+
+<script>
+const MAX_CHARS = 280
+
+function uid(prefix='id'){
+  return prefix + '_' + Math.random().toString(36).slice(2,9)
+}
+
+function loadJSON(k, d){ try{ return JSON.parse(localStorage.getItem(k)) || d }catch(e){return d}}
+function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+
+let users = loadJSON('micro_users', [])
+let posts = loadJSON('micro_posts', [])
+let session = loadJSON('micro_session', null)
+
+function seedOnce(){
+  if(users.length === 0){
+    const alice = {id:uid('u'),name:'Aashi',handle:'aashi',bio:'Designing lovely things.',avatarColor:'#7c3aed',followers:[],following:[]}
+    const bob = {id:uid('u'),name:'Rohan',handle:'rohan',bio:'JavaScript tinkerer',avatarColor:'#06b6d4',followers:[],following:[]}
+    users = [alice,bob]
+    posts = [
+      {id:uid('p'), userId:alice.id, text:'Hello world! This is GlowMicro — built for fun ✨',ts:Date.now()-1000*60*60*5,likes:2,likesBy:[],reposts:0,image:null,location:null},
+      {id:uid('p'), userId:bob.id, text:'Trying out a dark theme UI. Loving the glow ✨',ts:Date.now()-1000*60*20,likes:1,likesBy:[],reposts:0,image:null,location:null}
+    ]
+    saveAll()
+  }
+}
+seedOnce()
+
+function saveAll(){
+  saveJSON('micro_users', users)
+  saveJSON('micro_posts', posts)
+}
+
+function currentUser(){
+  return session ? users.find(u=>u.id===session.userId) : null
+}
+
+function formatTime(ts){
+  const d = new Date(ts)
+  const diff = Math.floor((Date.now()-ts)/1000)
+  if(diff < 60) return diff + 's'
+  if(diff < 3600) return Math.floor(diff/60)+'m'
+  if(diff < 86400) return Math.floor(diff/3600)+'h'
+  return d.toLocaleDateString()
+}
+
+function renderLeft(){
+  const u = currentUser()
+  document.getElementById('leftAvatar').textContent = u ? u.name[0].toUpperCase() : 'G'
+  document.getElementById('leftName').textContent = u ? u.name : 'Guest'
+  document.getElementById('leftHandle').textContent = u ? '@'+u.handle : 'Not signed in'
+  document.getElementById('composeAvatar').textContent = u ? u.name[0].toUpperCase() : 'G'
+  document.getElementById('postText').placeholder = u ? `What's happening, ${u.name}?` : "Sign in to post — or create an account"
+  document.getElementById('fcount').textContent = u ? ('Followers ' + u.followers.length) : 'Followers 0'
+  renderSuggest()
+  renderFollowingList()
+}
+
+function renderSuggest(){
+  const container = document.getElementById('suggestList')
+  container.innerHTML = ''
+  const u = currentUser()
+  const sample = users.slice(0,5)
+  sample.forEach(s=>{
+    const div = document.createElement('div')
+    div.className = 'user-mini'
+    div.innerHTML = `<div class="avatar" style="width:40px;height:40px;border-radius:10px">${s.name[0].toUpperCase()}</div>
+    <div><div style="font-weight:700">${s.name}</div><div class="small-muted">@${s.handle}</div></div>
+    <button class="btn follow-btn" data-id="${s.id}">${u && u.following.includes(s.id) ? 'Following' : 'Follow'}</button>`
+    container.appendChild(div)
+  })
+}
+
+function renderFollowingList(){
+  const container = document.getElementById('followingList')
+  container.innerHTML = ''
+  const u = currentUser()
+  if(!u){ container.innerHTML = '<div class="small-muted">Sign in to see who you follow</div>'; return }
+  if(u.following.length===0){ container.innerHTML = '<div class="small-muted">You are not following anyone yet</div>'; return }
+  u.following.forEach(fid=>{
+    const fu = users.find(x=>x.id===fid)
+    if(!fu) return
+    const el = document.createElement('div')
+    el.className='user-mini'
+    el.innerHTML = `<div class="avatar" style="width:36px;height:36px;border-radius:8px">${fu.name[0].toUpperCase()}</div>
+      <div><div style="font-weight:700">${fu.name}</div><div class="small-muted">@${fu.handle}</div></div>
+      <button class="btn follow-btn" data-id="${fu.id}">Unfollow</button>`
+    container.appendChild(el)
+  })
+}
+
+function renderTrends(){
+  const trends = {}
+  posts.forEach(p=>{
+    (p.text.match(/#\w+/g) || []).forEach(t=> trends[t]=(trends[t]||0)+1)
+  })
+  const sorted = Object.entries(trends).sort((a,b)=>b[1]-a[1]).slice(0,6)
+  const el = document.getElementById('trends')
+  el.innerHTML = ''
+  if(sorted.length===0){ el.innerHTML = '<div class="small-muted">No trending tags yet</div>'; return }
+  sorted.forEach(([tag,c])=>{
+    const d = document.createElement('div')
+    d.className='row'
+    d.style.justifyContent='space-between'
+    d.innerHTML = `<div>${tag}</div><div class="small-muted">${c}</div>`
+    el.appendChild(d)
+  })
+}
+
+function renderFeed(filterUserId=null, query=null){
+  const feed = document.getElementById('feed')
+  feed.innerHTML = ''
+  const u = currentUser()
+  let visible = posts.slice().sort((a,b)=>b.ts-a.ts)
+  if(filterUserId) visible = visible.filter(p=>p.userId===filterUserId)
+  if(u) visible = visible.filter(p => p.userId===u.id || u.following.includes(p.userId) || p.userId===u.id)
+  if(!u && !filterUserId) visible = visible.slice(0,20) // public sample
+  if(query){
+    const q = query.toLowerCase()
+    visible = visible.filter(p=>p.text.toLowerCase().includes(q) || (users.find(x=>x.id===p.userId).name.toLowerCase().includes(q)))
+  }
+  if(visible.length===0){ feed.innerHTML='<div class="small-muted">No posts yet</div>'; return }
+  visible.forEach(p=>{
+    const author = users.find(x=>x.id===p.userId) || {name:'Unknown',handle:'unknown'}
+    const div = document.createElement('div')
+    div.className='post'
+    div.innerHTML = `
+      <div style="width:56px;flex-shrink:0">
+        <div class="avatar" style="width:56px;height:56px;border-radius:12px">${author.name[0].toUpperCase()}</div>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-weight:700">${author.name}</div>
+          <div class="small-muted">@${author.handle} · ${formatTime(p.ts)}</div>
+        </div>
+        <div style="margin-top:8px;white-space:pre-wrap">${linkify(p.text)}</div>
+        ${p.image ? `<img src="${p.image}" alt="post image">` : ''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap" class="actions">
+          <button class="action likeBtn ${p.likesBy && session && p.likesBy.includes(session.userId) ? 'liked' : ''}" data-id="${p.id}">❤ <span class="count">${p.likes||0}</span></button>
+          <button class="action repostBtn" data-id="${p.id}">🔁 <span class="count">${p.reposts||0}</span></button>
+          <button class="action viewProfile" data-id="${p.userId}">👤 Profile</button>
+          ${session && session.userId===p.userId ? `<button class="action delBtn" data-id="${p.id}" style="border-color:var(--danger);color:var(--danger)">Delete</button>` : ''}
+        </div>
+      </div>`
+    feed.appendChild(div)
+  })
+}
+
+function linkify(text){
+  return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--accent2)">$1</a>')
+             .replace(/#(\w+)/g, '<span class="tag">#$1</span>')
+             .replace(/@(\w+)/g, '<span style="color:var(--accent1)">@$1</span>')
+}
+
+function renderAll(){
+  renderLeft()
+  renderFeed()
+  renderTrends()
+  bindEvents()
+}
+
+function bindEvents(){
+  document.querySelectorAll('.follow-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.dataset.id
+      const u = currentUser()
+      if(!u){ openAuthModal(); return }
+      if(u.following.includes(id)){
+        u.following = u.following.filter(x=>x!==id)
+        const target = users.find(x=>x.id===id)
+        target.followers = target.followers.filter(x=>x!==u.id)
+      } else {
+        u.following.push(id)
+        const target = users.find(x=>x.id===id)
+        target.followers.push(u.id)
+      }
+      saveAll(); renderLeft(); renderFollowingList(); renderSuggest()
+    }
+  })
+
+  document.getElementById('btnCreate').onclick = openCreateModal
+  document.getElementById('btnLogin').onclick = openLoginModal
+  document.getElementById('btnNewPost').onclick = ()=>{ document.getElementById('postText').focus() }
+  document.getElementById('btnProfile').onclick = ()=>{ const u=currentUser(); if(!u){openAuthModal(); return} renderFeed(u.id) }
+  document.getElementById('btnExplore').onclick = ()=>{ renderFeed(null); document.getElementById('searchInput').value=''; }
+  document.getElementById('postBtn').onclick = handlePost
+  document.getElementById('imgUpload').onchange = handleImageUpload
+  document.getElementById('postText').oninput = ()=>{ document.getElementById('charCount').textContent = MAX_CHARS - document.getElementById('postText').value.length }
+  document.getElementById('searchBtn').onclick = ()=>{ renderFeed(null, document.getElementById('searchInput').value); }
+  document.getElementById('searchInput').onkeypress = (e)=>{ if(e.key==='Enter') document.getElementById('searchBtn').click() }
+
+  document.querySelectorAll('.viewProfile').forEach(b=> b.onclick = ()=>{ renderFeed(b.dataset.id) })
+
+  document.querySelectorAll('.likeBtn').forEach(b=> b.onclick = ()=>{
+    const pid = b.dataset.id
+    if(!session){ openAuthModal(); return }
+    const p = posts.find(x=>x.id===pid)
+    if(!p.likesBy) p.likesBy=[]
+    if(p.likesBy.includes(session.userId)){
+      p.likesBy = p.likesBy.filter(x=>x!==session.userId)
+      p.likes = Math.max(0,(p.likes||0)-1)
+    } else {
+      p.likesBy.push(session.userId)
+      p.likes = (p.likes||0)+1
+    }
+    saveAll(); renderFeed()
+  })
+
+  document.querySelectorAll('.repostBtn').forEach(b=> b.onclick = ()=>{
+    if(!session){ openAuthModal(); return }
+    const pid = b.dataset.id
+    const p = posts.find(x=>x.id===pid)
+    p.reposts = (p.reposts||0)+1
+    saveAll(); renderFeed()
+  })
+
+  document.querySelectorAll('.delBtn').forEach(b=> b.onclick = ()=>{
+    const pid = b.dataset.id
+    posts = posts.filter(x=>x.id!==pid)
+    saveAll(); renderFeed()
+  })
+
+  document.querySelectorAll('.user-mini').forEach(el=>{
+    el.onclick = (e)=>{ if(e.target.tagName.toLowerCase() === 'button') return; const idx = el.querySelector('.follow-btn'); }
+  })
+}
+
+function handleImageUpload(e){
+  const file = e.target.files[0]
+  if(!file) return
+  const reader = new FileReader()
+  reader.onload = function(){ document.getElementById('imgPreview').innerHTML = `<img src="${reader.result}" style="max-width:160px;border-radius:8px">`; document.getElementById('imgPreview').dataset.img = reader.result }
+  reader.readAsDataURL(file)
+}
+
+function handlePost(){
+  const text = document.getElementById('postText').value.trim()
+  if(text.length===0 && !document.getElementById('imgPreview').dataset.img){ alert('Write something or attach an image'); return }
+  if(text.length > MAX_CHARS){ alert('Too long'); return }
+  if(!session){ openAuthModal(); return }
+  const p = {
+    id:uid('p'),
+    userId:session.userId,
+    text,
+    ts:Date.now(),
+    likes:0, likesBy:[], reposts:0,
+    image: document.getElementById('imgPreview').dataset.img || null,
+    location: null
+  }
+  posts.push(p)
+  saveAll()
+  document.getElementById('postText').value=''
+  delete document.getElementById('imgPreview').dataset.img
+  document.getElementById('imgPreview').innerHTML=''
+  renderFeed()
+  renderTrends()
+}
+
+function openAuthModal(){
+  openModal(`
+    <div style="max-width:420px;background:var(--panel);padding:18px;border-radius:12px">
+      <div style="font-weight:700;margin-bottom:6px">Sign in</div>
+      <div class="small-muted" style="margin-bottom:12px">Enter your handle (no password for demo)</div>
+      <input id="modalHandle" class="input" placeholder="yourhandle" />
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn" id="modalSignin">Sign in</button>
+        <button class="btn" id="modalToCreate">Create account</button>
+        <button class="btn" id="modalCancel">Cancel</button>
+      </div>
+    </div>
+  `)
+  document.getElementById('modalSignin').onclick = ()=>{
+    const handle = document.getElementById('modalHandle').value.trim()
+    const u = users.find(x=>x.handle===handle)
+    if(!u){ alert('No such user — create an account'); return }
+    session = {userId:u.id}
+    saveJSON('micro_session', session)
+    closeModal()
+    renderAll()
+  }
+  document.getElementById('modalToCreate').onclick = ()=>{
+    closeModal()
+    openCreateModal()
+  }
+  document.getElementById('modalCancel').onclick = closeModal
+}
+
+function openCreateModal(){
+  openModal(`
+    <div style="max-width:480px;background:var(--panel);padding:18px;border-radius:12px">
+      <div style="font-weight:700;margin-bottom:6px">Create account</div>
+      <div class="small-muted" style="margin-bottom:12px">Pick name and handle</div>
+      <input id="cName" class="input" placeholder="Full name" />
+      <input id="cHandle" class="input" placeholder="handle (no spaces)" style="margin-top:8px" />
+      <textarea id="cBio" class="input" placeholder="Short bio" style="margin-top:8px"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn" id="createBtn">Create</button>
+        <button class="btn" id="createCancel">Cancel</button>
+      </div>
+    </div>
+  `)
+  document.getElementById('createBtn').onclick = ()=>{
+    const name = document.getElementById('cName').value.trim()
+    const handle = document.getElementById('cHandle').value.trim()
+    const bio = document.getElementById('cBio').value.trim()
+    if(!name || !handle){ alert('Provide name and handle'); return }
+    if(users.find(x=>x.handle===handle)){ alert('Handle taken'); return }
+    const newU = {id:uid('u'),name,handle,bio,avatarColor:'#7c3aed',followers:[],following:[]}
+    users.push(newU)
+    session = {userId:newU.id}
+    saveAll(); saveJSON('micro_session', session)
+    closeModal(); renderAll()
+  }
+  document.getElementById('createCancel').onclick = closeModal
+}
+
+function openModal(content){
+  const root = document.getElementById('modalRoot')
+  root.innerHTML = `<div id="overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:9999">
+    ${content}
+  </div>`
+  document.getElementById('overlay').onclick = (e)=>{ if(e.target.id==='overlay') closeModal() }
+}
+
+function closeModal(){ document.getElementById('modalRoot').innerHTML = '' }
+
+renderAll()
+
+</script>
+</body>
+</html>
